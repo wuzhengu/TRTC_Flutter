@@ -33,9 +33,6 @@
 **/*.lock
 **/Podfile.lock
 
-# Web related
-lib/generated_plugin_registrant.dart
-
 # Symbolication related
 app.*.symbols
 
@@ -48,3 +45,11 @@ app.*.map.json
 /android/app/release
 lib/Debug/Config.dart
 *.DS_Store
+
+pubspec.lock
+
+macos/Flutter/GeneratedPluginRegistrant.swift
+
+windows/flutter/generated_plugin_registrant.cc
+windows/flutter/generated_plugin_registrant.h
+windows/flutter/generated_plugins.cmake

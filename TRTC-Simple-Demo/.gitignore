@@ -31,10 +31,13 @@ pubspec.lock
 .pub/
 /build/
 
-# Web related
-lib/generated_plugin_registrant.dart
-
 # Exceptions to above rules.
 !/packages/flutter_tools/test/data/dart_dependencies_test/**/.packages
 
 node_modules/
+
+macos/Flutter/GeneratedPluginRegistrant.swift
+
+windows/flutter/generated_plugin_registrant.cc
+windows/flutter/generated_plugin_registrant.h
+windows/flutter/generated_plugins.cmake
