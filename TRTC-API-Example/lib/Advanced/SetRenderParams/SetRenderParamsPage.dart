@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:tencent_trtc_cloud/trtc_cloud.dart';
-import 'package:tencent_trtc_cloud/trtc_cloud_def.dart';
-import 'package:tencent_trtc_cloud/trtc_cloud_listener.dart';
-import 'package:tencent_trtc_cloud/trtc_cloud_video_view.dart';
+import 'package:tencent_rtc_sdk/trtc_cloud.dart';
+import 'package:tencent_rtc_sdk/trtc_cloud_def.dart';
+import 'package:tencent_rtc_sdk/trtc_cloud_listener.dart';
+import 'package:tencent_rtc_sdk/trtc_cloud_video_view.dart';
 import 'package:trtc_api_example/Common/TXHelper.dart';
 import 'package:trtc_api_example/Common/TXUpdateEvent.dart';
 import 'package:trtc_api_example/Debug/GenerateTestUserSig.dart';
@@ -19,18 +19,19 @@ class SetRenderParamsPage extends StatefulWidget {
 
 class _SetRenderParamsPageState extends State<SetRenderParamsPage> {
   late TRTCCloud trtcCloud;
+  late TRTCCloudListener listener;
   int? localViewId;
   bool isStartPush = false;
   int roomId = int.parse(TXHelper.generateRandomStrRoomId());
   String userId = TXHelper.generateRandomUserId();
   Map<String, String> remoteUidSet = {};
 
-  int localFillMode = TRTCCloudDef.TRTC_VIDEO_RENDER_MODE_FILL;
-  int localMirroType = TRTCCloudDef.TRTC_VIDEO_MIRROR_TYPE_AUTO;
-  int localRotation = TRTCCloudDef.TRTC_VIDEO_ROTATION_0;
+  TRTCVideoFillMode localFillMode = TRTCVideoFillMode.fill;
+  TRTCVideoMirrorType localMirroType = TRTCVideoMirrorType.auto;
+  TRTCVideoRotation localRotation = TRTCVideoRotation.rotation0;
   String selectedRemoteUser = "";
-  int selectedRemoteFillMode = TRTCCloudDef.TRTC_VIDEO_RENDER_MODE_FILL;
-  int selectedRemoteRotation = TRTCCloudDef.TRTC_VIDEO_ROTATION_0;
+  TRTCVideoFillMode selectedRemoteFillMode = TRTCVideoFillMode.fill;
+  TRTCVideoRotation selectedRemoteRotation = TRTCVideoRotation.rotation0;
   Map<String, TRTCRenderParams> remoteRenderParamsDic = {};
 
   @override
@@ -42,122 +43,35 @@ class _SetRenderParamsPageState extends State<SetRenderParamsPage> {
 
   initTRTCCloud() async {
     trtcCloud = (await TRTCCloud.sharedInstance())!;
-    trtcCloud.setGSensorMode(TRTCCloudDef.TRTC_GSENSOR_MODE_DISABLE);
+    trtcCloud.setGravitySensorAdaptiveMode(TRTCGSensorMode.disable);
   }
 
   startPushStream() async {
-    trtcCloud.startLocalPreview(true, localViewId);
+    trtcCloud.startLocalPreview(true, localViewId!);
     TRTCParams params = new TRTCParams();
     params.sdkAppId = GenerateTestUserSig.sdkAppId;
     params.roomId = this.roomId;
     params.userId = this.userId;
-    params.role = TRTCCloudDef.TRTCRoleAnchor;
+    params.role = TRTCRoleType.anchor;
     params.userSig = await GenerateTestUserSig.genTestSig(params.userId);
-    trtcCloud.enterRoom(params, TRTCCloudDef.TRTC_APP_SCENE_VIDEOCALL);
+    trtcCloud.enterRoom(params, TRTCAppScene.videoCall);
 
     TRTCVideoEncParam encParams = new TRTCVideoEncParam();
-    encParams.videoResolution = TRTCCloudDef.TRTC_VIDEO_RESOLUTION_640_360;
+    encParams.videoResolution = TRTCVideoResolution.res_640_360;
     encParams.videoBitrate = 550;
     encParams.videoFps = 15;
     trtcCloud.setVideoEncoderParam(encParams);
-    trtcCloud.startLocalAudio(TRTCCloudDef.TRTC_AUDIO_QUALITY_MUSIC);
-    trtcCloud.registerListener(onTrtcListener);
+    trtcCloud.startLocalAudio(TRTCAudioQuality.music);
+    listener = getListener();
+    trtcCloud.registerListener(listener);
   }
 
-  onTrtcListener(type, params) async {
-    switch (type) {
-      case TRTCCloudListener.onError:
-        break;
-      case TRTCCloudListener.onWarning:
-        break;
-      case TRTCCloudListener.onEnterRoom:
-        break;
-      case TRTCCloudListener.onExitRoom:
-        break;
-      case TRTCCloudListener.onSwitchRole:
-        break;
-      case TRTCCloudListener.onRemoteUserEnterRoom:
-        break;
-      case TRTCCloudListener.onRemoteUserLeaveRoom:
-        break;
-      case TRTCCloudListener.onConnectOtherRoom:
-        break;
-      case TRTCCloudListener.onDisConnectOtherRoom:
-        break;
-      case TRTCCloudListener.onSwitchRoom:
-        break;
-      case TRTCCloudListener.onUserVideoAvailable:
-        onUserVideoAvailable(params["userId"], params['available']);
-        break;
-      case TRTCCloudListener.onUserSubStreamAvailable:
-        break;
-      case TRTCCloudListener.onUserAudioAvailable:
-        break;
-      case TRTCCloudListener.onFirstVideoFrame:
-        break;
-      case TRTCCloudListener.onFirstAudioFrame:
-        break;
-      case TRTCCloudListener.onSendFirstLocalVideoFrame:
-        break;
-      case TRTCCloudListener.onSendFirstLocalAudioFrame:
-        break;
-      case TRTCCloudListener.onNetworkQuality:
-        break;
-      case TRTCCloudListener.onStatistics:
-        break;
-      case TRTCCloudListener.onConnectionLost:
-        break;
-      case TRTCCloudListener.onTryToReconnect:
-        break;
-      case TRTCCloudListener.onConnectionRecovery:
-        break;
-      case TRTCCloudListener.onSpeedTest:
-        break;
-      case TRTCCloudListener.onCameraDidReady:
-        break;
-      case TRTCCloudListener.onMicDidReady:
-        break;
-      case TRTCCloudListener.onUserVoiceVolume:
-        break;
-      case TRTCCloudListener.onRecvCustomCmdMsg:
-        break;
-      case TRTCCloudListener.onMissCustomCmdMsg:
-        break;
-      case TRTCCloudListener.onRecvSEIMsg:
-        break;
-      case TRTCCloudListener.onStartPublishing:
-        break;
-      case TRTCCloudListener.onStopPublishing:
-        break;
-      case TRTCCloudListener.onStartPublishCDNStream:
-        break;
-      case TRTCCloudListener.onStopPublishCDNStream:
-        break;
-      case TRTCCloudListener.onSetMixTranscodingConfig:
-        break;
-      case TRTCCloudListener.onMusicObserverStart:
-        break;
-      case TRTCCloudListener.onMusicObserverPlayProgress:
-        break;
-      case TRTCCloudListener.onMusicObserverComplete:
-        break;
-      case TRTCCloudListener.onSnapshotComplete:
-        break;
-      case TRTCCloudListener.onScreenCaptureStarted:
-        break;
-      case TRTCCloudListener.onScreenCapturePaused:
-        break;
-      case TRTCCloudListener.onScreenCaptureResumed:
-        break;
-      case TRTCCloudListener.onScreenCaptureStoped:
-        break;
-      case TRTCCloudListener.onDeviceChange:
-        break;
-      case TRTCCloudListener.onTestMicVolume:
-        break;
-      case TRTCCloudListener.onTestSpeakerVolume:
-        break;
-    }
+  TRTCCloudListener getListener() {
+    return TRTCCloudListener(
+        onUserVideoAvailable: (userId, available) {
+          onUserVideoAvailable(userId, available);
+        }
+    );
   }
 
   onUserVideoAvailable(String userId, bool available) {
@@ -184,10 +98,10 @@ class _SetRenderParamsPageState extends State<SetRenderParamsPage> {
   }
 
   destroyRoom() async {
-    await trtcCloud.stopLocalAudio();
-    await trtcCloud.stopLocalPreview();
-    await trtcCloud.exitRoom();
-    await TRTCCloud.destroySharedInstance();
+    trtcCloud.stopLocalAudio();
+    trtcCloud.stopLocalPreview();
+    trtcCloud.exitRoom();
+    TRTCCloud.destroySharedInstance();
   }
 
   @override
@@ -205,7 +119,7 @@ class _SetRenderParamsPageState extends State<SetRenderParamsPage> {
       selectedRemoteUser = "";
       remoteRenderParamsDic.clear();
       remoteUidSet.clear();
-      trtcCloud.unRegisterListener(onTrtcListener);
+      trtcCloud.unRegisterListener(listener);
       trtcCloud.stopLocalAudio();
       trtcCloud.stopLocalPreview();
       trtcCloud.exitRoom();
@@ -226,7 +140,7 @@ class _SetRenderParamsPageState extends State<SetRenderParamsPage> {
         renderParams = remoteRenderParamsDic[selectedRemoteUser]!;
       }
       trtcCloud.setRemoteRenderParams(selectedRemoteUser,
-          TRTCCloudDef.TRTC_VIDEO_STREAM_TYPE_SMALL, renderParams);
+          TRTCVideoStreamType.small, renderParams);
     }
   }
 
@@ -297,8 +211,8 @@ class _SetRenderParamsPageState extends State<SetRenderParamsPage> {
   Widget build(BuildContext context) {
     List<String> remoteUidList = remoteUidSet.values.toList();
     TRTCRenderParams remoteRenderParams = TRTCRenderParams();
-    remoteRenderParams.fillMode = TRTCCloudDef.TRTC_VIDEO_RENDER_MODE_FILL;
-    remoteRenderParams.rotation = TRTCCloudDef.TRTC_VIDEO_ROTATION_0;
+    remoteRenderParams.fillMode = TRTCVideoFillMode.fill;
+    remoteRenderParams.rotation = TRTCVideoRotation.rotation0;
     if (remoteRenderParamsDic.containsKey(selectedRemoteUser)) {
       remoteRenderParams = remoteRenderParamsDic[selectedRemoteUser]!;
     }
@@ -311,7 +225,6 @@ class _SetRenderParamsPageState extends State<SetRenderParamsPage> {
           onTap: () {},
           child: TRTCCloudVideoView(
             key: ValueKey("LocalView"),
-            viewType: TRTCCloudDef.TRTC_VideoView_TextureView,
             onViewCreated: (viewId) async {
               setState(() {
                 localViewId = viewId;
@@ -347,11 +260,10 @@ class _SetRenderParamsPageState extends State<SetRenderParamsPage> {
                         flex: 1,
                         child: TRTCCloudVideoView(
                           key: ValueKey('RemoteView_$userId'),
-                          viewType: TRTCCloudDef.TRTC_VideoView_TextureView,
                           onViewCreated: (viewId) async {
                             trtcCloud.startRemoteView(
                                 userId,
-                                TRTCCloudDef.TRTC_VIDEO_STREAM_TYPE_SMALL,
+                                TRTCVideoStreamType.small,
                                 viewId);
                           },
                         ),
@@ -401,7 +313,7 @@ class _SetRenderParamsPageState extends State<SetRenderParamsPage> {
                             width: 150,
                             height: 20,
                             child: Text(
-                              '设置预览图像渲染模式',
+                              'Set preview image rendering mode',
                               overflow: TextOverflow.visible,
                             ),
                           ),
@@ -409,25 +321,25 @@ class _SetRenderParamsPageState extends State<SetRenderParamsPage> {
                             width: 150,
                             child: DropdownButton(
                               value: localFillMode,
-                              hint: Text('请选择渲染模式'),
+                              hint: Text('Please select the rendering mode'),
                               onChanged: (value) {
                                 onLocalFillModeClick(value);
                               },
                               items: [
                                 DropdownMenuItem(
                                   value:
-                                      TRTCCloudDef.TRTC_VIDEO_RENDER_MODE_FILL,
+                                      TRTCVideoFillMode.fill,
                                   child: Container(
-                                    child: Text('填充'),
+                                    child: Text('filling'),
                                     width: 125,
                                   ),
                                 ),
                                 DropdownMenuItem(
                                   value:
-                                      TRTCCloudDef.TRTC_VIDEO_RENDER_MODE_FIT,
+                                      TRTCVideoFillMode.fit,
                                   child: Container(
                                     width: 125,
-                                    child: Text('适应'),
+                                    child: Text('adapt'),
                                   ),
                                 ),
                               ],
@@ -437,7 +349,7 @@ class _SetRenderParamsPageState extends State<SetRenderParamsPage> {
                             width: 150,
                             height: 20,
                             child: Text(
-                              '设置预览镜像模式',
+                              'Set preview mirror mode',
                               overflow: TextOverflow.visible,
                             ),
                           ),
@@ -445,33 +357,31 @@ class _SetRenderParamsPageState extends State<SetRenderParamsPage> {
                             width: 150,
                             child: DropdownButton(
                               value: localMirroType,
-                              hint: Text('请选择镜像模式'),
+                              hint: Text('Please select mirror mode'),
                               onChanged: (value) {
                                 onLocalMirrorModeClick(value);
                               },
                               items: [
                                 DropdownMenuItem(
                                   value:
-                                      TRTCCloudDef.TRTC_VIDEO_MIRROR_TYPE_AUTO,
+                                      TRTCVideoMirrorType.auto,
                                   child: Container(
                                     width: 125,
-                                    child: Text('前摄开启'),
+                                    child: Text('Kaishi'),
                                   ),
                                 ),
                                 DropdownMenuItem(
-                                  value: TRTCCloudDef
-                                      .TRTC_VIDEO_MIRROR_TYPE_ENABLE,
+                                  value: TRTCVideoMirrorType.enable,
                                   child: Container(
                                     width: 125,
-                                    child: Text('前后摄均开启'),
+                                    child: Text('Turn on the front and rear'),
                                   ),
                                 ),
                                 DropdownMenuItem(
-                                  value: TRTCCloudDef
-                                      .TRTC_VIDEO_MIRROR_TYPE_DISABLE,
+                                  value: TRTCVideoMirrorType.disable,
                                   child: Container(
                                     width: 125,
-                                    child: Text('前后摄均关闭'),
+                                    child: Text('Turn on the front and rear camera'),
                                   ),
                                 ),
                               ],
@@ -481,7 +391,7 @@ class _SetRenderParamsPageState extends State<SetRenderParamsPage> {
                             width: 150,
                             height: 20,
                             child: Text(
-                              '设置预览图像旋转角度(顺时针)',
+                              'Set preview image rotation angle (clockwise)',
                               overflow: TextOverflow.visible,
                             ),
                           ),
@@ -489,39 +399,39 @@ class _SetRenderParamsPageState extends State<SetRenderParamsPage> {
                             width: 150,
                             child: DropdownButton(
                               value: localRotation,
-                              hint: Text('请选择旋转角度'),
+                              hint: Text('Please select the angle of the spinning angle'),
                               onChanged: (value) {
                                 onLocalRateButtonClick(value);
                               },
                               items: [
                                 DropdownMenuItem(
-                                  value: TRTCCloudDef.TRTC_VIDEO_ROTATION_0,
+                                  value: TRTCVideoRotation.rotation0,
                                   child: Container(
                                     width: 125,
-                                    child: Text('0度'),
+                                    child: Text('0 degrees'),
                                   ),
                                 ),
                                 DropdownMenuItem(
-                                  value: TRTCCloudDef.TRTC_VIDEO_ROTATION_90,
+                                  value: TRTCVideoRotation.rotation90,
                                   child: Container(
                                     width: 125,
                                     child: Text(
-                                      '90度',
+                                      '90 degree',
                                     ),
                                   ),
                                 ),
                                 DropdownMenuItem(
-                                  value: TRTCCloudDef.TRTC_VIDEO_ROTATION_180,
+                                  value: TRTCVideoRotation.rotation180,
                                   child: Container(
                                     width: 125,
-                                    child: Text('180度'),
+                                    child: Text('180 degrees'),
                                   ),
                                 ),
                                 DropdownMenuItem(
-                                  value: TRTCCloudDef.TRTC_VIDEO_ROTATION_270,
+                                  value: TRTCVideoRotation.rotation270,
                                   child: Container(
                                     width: 125,
-                                    child: Text('270度'),
+                                    child: Text('270 degrees'),
                                   ),
                                 ),
                               ],
@@ -540,7 +450,7 @@ class _SetRenderParamsPageState extends State<SetRenderParamsPage> {
                             width: 150,
                             height: 20,
                             child: Text(
-                              '远端用户ID',
+                              'Remote user ID',
                               overflow: TextOverflow.visible,
                             ),
                           ),
@@ -550,7 +460,7 @@ class _SetRenderParamsPageState extends State<SetRenderParamsPage> {
                               value: selectedRemoteUser,
                               hint: Container(
                                 width: 125,
-                                child: Text('请选择'),
+                                child: Text('please choose'),
                               ),
                               onChanged: (value) {
                                 onRemoteUserIdClick(value);
@@ -570,7 +480,7 @@ class _SetRenderParamsPageState extends State<SetRenderParamsPage> {
                             width: 150,
                             height: 20,
                             child: Text(
-                              '设置远端图像渲染模式',
+                              'Set the remote image rendering mode',
                               overflow: TextOverflow.visible,
                             ),
                           ),
@@ -578,25 +488,25 @@ class _SetRenderParamsPageState extends State<SetRenderParamsPage> {
                             width: 150,
                             child: DropdownButton(
                               value: remoteRenderParams.fillMode,
-                              hint: Text('请选择渲染模式'),
+                              hint: Text('Please select the rendering mode'),
                               onChanged: (value) {
                                 onRemoteFillModeClick(value);
                               },
                               items: [
                                 DropdownMenuItem(
                                   value:
-                                      TRTCCloudDef.TRTC_VIDEO_RENDER_MODE_FILL,
+                                      TRTCVideoFillMode.fill,
                                   child: Container(
-                                    child: Text('填充'),
+                                    child: Text('filling'),
                                     width: 125,
                                   ),
                                 ),
                                 DropdownMenuItem(
                                   value:
-                                      TRTCCloudDef.TRTC_VIDEO_RENDER_MODE_FIT,
+                                      TRTCVideoFillMode.fit,
                                   child: Container(
                                     width: 125,
-                                    child: Text('适应'),
+                                    child: Text('adapt'),
                                   ),
                                 ),
                               ],
@@ -606,7 +516,7 @@ class _SetRenderParamsPageState extends State<SetRenderParamsPage> {
                             width: 150,
                             height: 20,
                             child: Text(
-                              '设置预览图像旋转角度(顺时针)',
+                              'Set preview image rotation angle (clockwise)',
                               overflow: TextOverflow.visible,
                             ),
                           ),
@@ -614,39 +524,39 @@ class _SetRenderParamsPageState extends State<SetRenderParamsPage> {
                             width: 150,
                             child: DropdownButton(
                               value: remoteRenderParams.rotation,
-                              hint: Text('请选择旋转角度'),
+                              hint: Text('Please select the angle of the spinning angle'),
                               onChanged: (value) {
                                 onRemoteRotationClick(value);
                               },
                               items: [
                                 DropdownMenuItem(
-                                  value: TRTCCloudDef.TRTC_VIDEO_ROTATION_0,
+                                  value: TRTCVideoRotation.rotation0,
                                   child: Container(
                                     width: 125,
-                                    child: Text('0度'),
+                                    child: Text('0 degrees'),
                                   ),
                                 ),
                                 DropdownMenuItem(
-                                  value: TRTCCloudDef.TRTC_VIDEO_ROTATION_90,
+                                  value: TRTCVideoRotation.rotation90,
                                   child: Container(
                                     width: 125,
                                     child: Text(
-                                      '90度',
+                                      '90 degree',
                                     ),
                                   ),
                                 ),
                                 DropdownMenuItem(
-                                  value: TRTCCloudDef.TRTC_VIDEO_ROTATION_180,
+                                  value: TRTCVideoRotation.rotation180,
                                   child: Container(
                                     width: 125,
-                                    child: Text('180度'),
+                                    child: Text('180 degrees'),
                                   ),
                                 ),
                                 DropdownMenuItem(
-                                  value: TRTCCloudDef.TRTC_VIDEO_ROTATION_270,
+                                  value: TRTCVideoRotation.rotation270,
                                   child: Container(
                                     width: 125,
-                                    child: Text('270度'),
+                                    child: Text('270 degrees'),
                                   ),
                                 ),
                               ],
